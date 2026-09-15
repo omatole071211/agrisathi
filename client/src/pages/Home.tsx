@@ -33,8 +33,10 @@ import {
 import type { Locale, ModuleId } from "@/lib/i18n";
 import { getTranslation, localeSpeechCodes, moduleColors, moduleIds } from "@/lib/i18n";
 import { useVoice } from "@/hooks/useVoice";
+import type { FarmerProfile } from "@/lib/auth";
+import { fetchWeather, type WeatherSnapshot } from "@/lib/weather";
 
-type HomeProps = { locale: Locale; setLocale: (locale: Locale) => void };
+type HomeProps = { locale: Locale; setLocale: (locale: Locale) => void; profile: FarmerProfile; onLogout: () => void };
 type IconType = typeof Leaf;
 
 const moduleIcons: Record<ModuleId, IconType> = {
@@ -163,9 +165,12 @@ function DetailPanel({ id, locale, voice, onBack }: { id: ModuleId; locale: Loca
   );
 }
 
-export default function Home({ locale, setLocale }: HomeProps) {
+export default function Home({ locale, setLocale, profile, onLogout }: HomeProps) {
   const t = getTranslation(locale);
   const voice = useVoice(locale);
+  const [weather, setWeather] = useState<WeatherSnapshot | null>(null);
+  const [locating, setLocating] = useState(false);
+  const [locationMessage, setLocationMessage] = useState("");
   const [selectedModule, setSelectedModule] = useState<ModuleId | null>(null);
   const [voiceOpen, setVoiceOpen] = useState(false);
   const [assisted, setAssisted] = useState(false);
@@ -181,7 +186,35 @@ export default function Home({ locale, setLocale }: HomeProps) {
     return () => { window.removeEventListener("online", handleOnline); window.removeEventListener("offline", handleOffline); };
   }, []);
 
-  const overviewText = useMemo(() => `${t.greeting}, ${t.farmerName}. ${t.overviewSubtitle}`, [t]);
+  useEffect(() => {
+    fetchWeather(20.087, 73.95, `${profile.village}, ${profile.district}`).then(setWeather);
+  }, [profile.district, profile.village]);
+
+  const refreshWeatherForLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationMessage(t.locationDenied);
+      return;
+    }
+    setLocating(true);
+    setLocationMessage("");
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        fetchWeather(coords.latitude, coords.longitude, t.location).then((snapshot) => {
+          setWeather(snapshot);
+          setLocating(false);
+          setLocationMessage(snapshot.isLive ? t.liveWeather : t.mockWeather);
+        });
+      },
+      () => {
+        setLocating(false);
+        setLocationMessage(t.locationDenied);
+      },
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 },
+    );
+  };
+
+  const displayName = profile.name.split(" ")[0];
+  const overviewText = useMemo(() => `${t.greeting}, ${displayName}. ${t.overviewSubtitle}`, [t, displayName]);
   const navItems = [
     { id: "overview", label: t.overview, icon: TrendingUp },
     ...moduleIds.map((id) => ({ id, label: t.module[id].title, icon: moduleIcons[id] })),
@@ -196,14 +229,14 @@ export default function Home({ locale, setLocale }: HomeProps) {
         <div className="brand-lockup"><LogoMark /><div><strong>{t.brand}</strong><span>{t.brandTagline}</span></div></div>
         <div className="sidebar-divider" />
         <nav className="main-nav" aria-label={t.navLabel}><span className="nav-heading">{t.overview}</span>{navItems.map((item) => { const ItemIcon = item.icon; return <button key={item.id} className={cn("nav-item", activeNav === item.id && "is-active")} onClick={() => { setActiveNav(item.id); if (item.id !== "overview") openModule(item.id as ModuleId); else setSelectedModule(null); }}><ItemIcon size={18} /><span>{item.label}</span>{item.id === "weather" && <span className="nav-alert">2</span>}</button>; })}</nav>
-        <div className="sidebar-bottom"><div className="help-card"><div className="help-card-icon"><CircleHelp size={17} /></div><div><strong>{t.askForHelp}</strong><a href="tel:18001801551">{t.callCentre}</a></div></div><button className="profile-button"><span className="avatar">R</span><span><strong>{t.farmerName} Patil</strong><small>{t.villageValue}</small></span><MoreHorizontal size={18} /></button></div>
+        <div className="sidebar-bottom"><div className="help-card"><div className="help-card-icon"><CircleHelp size={17} /></div><div><strong>{t.askForHelp}</strong><a href="tel:18001801551">{t.callCentre}</a></div></div><button className="profile-button" onClick={onLogout}><span className="avatar">{profile.name[0]}</span><span><strong>{profile.name}</strong><small>{profile.village}, {profile.district}</small></span><MoreHorizontal size={18} /></button></div>
       </aside>
       <div className="mobile-topbar"><button className="icon-button" aria-label="Open navigation"><Menu size={20} /></button><div className="brand-lockup"><LogoMark /><strong>{t.brand}</strong></div><button className="icon-button"><BellRing size={19} /></button></div>
       <div className="content-shell">
         {!online && <div className="offline-banner"><Waves size={16} />{t.offlineBanner}</div>}
         <header className="topbar"><div className="breadcrumb"><span>{t.brand}</span><ChevronRight size={15} /><strong>{selectedModule ? t.module[selectedModule].title : t.overview}</strong></div><div className="topbar-actions"><div className="sync-status"><span className={cn("sync-dot", online ? "is-online" : "is-offline")} />{online ? t.online : t.offlineReady}</div><LocaleSwitcher locale={locale} setLocale={setLocale} /><button className="voice-trigger" onClick={() => setVoiceOpen(true)}><Mic2 size={17} />{t.voiceGuide}</button></div></header>
-        {selectedModule ? <DetailPanel id={selectedModule} locale={locale} voice={voice} onBack={() => { setSelectedModule(null); setActiveNav("overview"); }} /> : <main className="dashboard-main"><section className="welcome-row"><div><div className="eyebrow">{t.dateLabel} · {t.location}</div><h1>{t.greeting}, <em>{t.farmerName}</em>.</h1><p>{t.overviewSubtitle}</p></div><div className="welcome-actions"><button className="outline-button" onClick={speakOverview}>{voice.isSpeaking ? <Pause size={16} /> : <Volume2 size={16} />}{voice.isSpeaking ? t.stop : t.speak}</button><button className="primary-button" onClick={() => setVoiceOpen(true)}><Mic size={17} />{t.listen}</button></div></section>
-          <section className="hero-grid"><div className="hero-card"><div className="hero-card-pattern" /><div className="hero-card-content"><div className="hero-card-kicker"><span className="pulse-dot" />{t.nextTask}</div><h2>{t.module.irrigation.title}</h2><p>{t.module.irrigation.short}. {detailCopy[locale].irrigation.headline}</p><button className="hero-link" onClick={() => openModule("irrigation")}>{t.module.irrigation.action}<ArrowRight size={16} /></button></div><div className="hero-weather"><CloudSun size={24} /><strong>28°</strong><span>Partly cloudy</span></div></div><div className="snapshot-card"><div className="snapshot-title"><span>{t.fieldSnapshot}</span><LocateFixed size={17} /></div><div className="snapshot-value">2.4 <small>acres</small></div><div className="snapshot-location">{t.villageValue}, {t.location}</div><div className="snapshot-bars"><div><span>{t.soilMoisture}</span><strong>42%</strong><i><b style={{ width: "42%" }} /></i></div><div><span>{t.rainfall}</span><strong>18 mm</strong><i><b className="rain-bar" style={{ width: "66%" }} /></i></div></div></div></section>
+        {selectedModule ? <DetailPanel id={selectedModule} locale={locale} voice={voice} onBack={() => { setSelectedModule(null); setActiveNav("overview"); }} /> : <main className="dashboard-main"><section className="welcome-row"><div><div className="eyebrow">{t.dateLabel} · {profile.village}, {profile.district}</div><h1>{t.greeting}, <em>{displayName}</em>.</h1><p>{t.overviewSubtitle}</p></div><div className="welcome-actions"><button className="outline-button" onClick={speakOverview}>{voice.isSpeaking ? <Pause size={16} /> : <Volume2 size={16} />}{voice.isSpeaking ? t.stop : t.speak}</button><button className="primary-button" onClick={() => setVoiceOpen(true)}><Mic size={17} />{t.listen}</button></div></section>
+          <section className="hero-grid"><div className="hero-card"><div className="hero-card-pattern" /><div className="hero-card-content"><div className="hero-card-kicker"><span className="pulse-dot" />{t.nextTask}</div><h2>{t.module.irrigation.title}</h2><p>{t.module.irrigation.short}. {detailCopy[locale].irrigation.headline}</p><button className="hero-link" onClick={() => openModule("irrigation")}>{t.module.irrigation.action}<ArrowRight size={16} /></button></div><div className="hero-weather"><CloudSun size={24} /><strong>{weather ? `${weather.temperature}°` : "28°"}</strong><span>{weather?.description ?? "Partly cloudy"}</span></div></div><div className="snapshot-card"><div className="snapshot-title"><span>{t.fieldSnapshot}</span><button className="location-button" onClick={refreshWeatherForLocation} aria-label={t.useLocation} title={t.useLocation}><LocateFixed size={17} /></button></div><div className="snapshot-value">{profile.farmSize.replace(" acres", "")} <small>acres</small></div><div className="snapshot-location">{weather?.location ?? `${profile.village}, ${profile.district}, ${profile.state}`}</div><div className="snapshot-bars"><div><span>{t.soilMoisture}</span><strong>42%</strong><i><b style={{ width: "42%" }} /></i></div><div><span>{t.rainfall}</span><strong>{weather ? `${weather.rainfall} mm` : "18 mm"}</strong><i><b className="rain-bar" style={{ width: `${weather?.precipitationProbability ?? 66}%` }} /></i></div></div><div className="weather-status"><span className={weather?.isLive ? "is-live" : ""} />{locating ? t.locating : locationMessage || (weather?.isLive ? t.liveWeather : t.mockWeather)}</div></div></section>
           <section className="status-strip"><div className="status-strip-item"><div className="strip-icon green"><Leaf size={17} /></div><div><span>{t.soilMoisture}</span><strong>{t.soilValue}</strong></div></div><div className="status-strip-item"><div className="strip-icon blue"><Droplets size={17} /></div><div><span>{t.rainfall}</span><strong>{t.rainfallValue}</strong></div></div><div className="status-strip-item"><div className="strip-icon amber"><ShieldCheck size={17} /></div><div><span>{t.dataTrust}</span><strong>{t.modulesCount}</strong></div></div><div className="assisted-toggle"><div><strong>{t.assistedMode}</strong><span>{t.assistedModeBody}</span></div><button className={cn("toggle", assisted && "is-on")} onClick={() => setAssisted(!assisted)} role="switch" aria-checked={assisted}><span /></button></div></section>
           <section className="section-heading"><div><div className="eyebrow">{t.modulesCount}</div><h2>{t.modules}</h2></div><button className="text-button" onClick={() => setVoiceOpen(true)}><Mic2 size={16} />{t.voiceGuide}</button></section>
           <section className="module-grid">{moduleIds.map((id) => <ModuleCard key={id} id={id} locale={locale} onOpen={() => openModule(id)} onSpeak={() => voice.speak(`${t.module[id].title}. ${t.module[id].short}`)} />)}</section>

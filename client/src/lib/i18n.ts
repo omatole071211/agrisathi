@@ -23,6 +23,11 @@ type Translation = {
   farmerName: string;
   dateLabel: string;
   location: string;
+  useLocation: string;
+  locating: string;
+  locationDenied: string;
+  liveWeather: string;
+  mockWeather: string;
   overview: string;
   overviewSubtitle: string;
   modules: string;
@@ -96,6 +101,11 @@ export const translations: Record<Locale, Translation> = {
     farmerName: "Ramesh",
     dateLabel: "Tuesday, 15 September 2026",
     location: "Nashik, Maharashtra",
+    useLocation: "Use my location",
+    locating: "Finding your location…",
+    locationDenied: "Location unavailable; showing field location",
+    liveWeather: "Live weather",
+    mockWeather: "Demo weather",
     overview: "Your farm cockpit",
     overviewSubtitle: "Clear next steps for this week, grounded in field data.",
     modules: "Farm workflows",
@@ -176,6 +186,11 @@ export const translations: Record<Locale, Translation> = {
     farmerName: "रमेश",
     dateLabel: "मंगलवार, 15 सितंबर 2026",
     location: "नासिक, महाराष्ट्र",
+    useLocation: "मेरी लोकेशन लें",
+    locating: "आपकी लोकेशन खोज रहे हैं…",
+    locationDenied: "लोकेशन नहीं मिली; खेत की लोकेशन दिखाई जा रही है",
+    liveWeather: "लाइव मौसम",
+    mockWeather: "डेमो मौसम",
     overview: "आपका खेत डैशबोर्ड",
     overviewSubtitle: "इस सप्ताह के स्पष्ट अगले कदम, खेत के डेटा पर आधारित।",
     modules: "खेती के काम",
@@ -256,6 +271,11 @@ export const translations: Record<Locale, Translation> = {
     farmerName: "रमेश",
     dateLabel: "मंगळवार, १५ सप्टेंबर २०२६",
     location: "नाशिक, महाराष्ट्र",
+    useLocation: "माझे लोकेशन वापरा",
+    locating: "तुमचे लोकेशन शोधत आहे…",
+    locationDenied: "लोकेशन उपलब्ध नाही; शेताचे लोकेशन दाखवत आहे",
+    liveWeather: "थेट हवामान",
+    mockWeather: "डेमो हवामान",
     overview: "तुमचा शेत डॅशबोर्ड",
     overviewSubtitle: "शेताच्या माहितीवर आधारित या आठवड्यातील पुढची स्पष्ट पावले.",
     modules: "शेतीची कामे",
