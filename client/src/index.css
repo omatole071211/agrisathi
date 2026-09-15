@@ -403,3 +403,15 @@ button:focus-visible, a:focus-visible { outline: 3px solid rgba(28, 107, 72, 0.4
 .weather-status { margin-top: 16px; display: flex; align-items: center; gap: 6px; color: #90a098; font-size: 9px; font-weight: 700; }
 .weather-status > span { width: 6px; height: 6px; border-radius: 50%; background: #c89955; }
 .weather-status > span.is-live { background: #55a36c; box-shadow: 0 0 0 3px #e5f3e6; }
+
+.manual-link, .manual-back { display: inline-flex; align-items: center; gap: 7px; color: #3d7652; background: transparent; cursor: pointer; font-size: 11px; font-weight: 800; }
+.manual-link { width: 100%; padding: 10px 0 2px; justify-content: center; border-top: 1px solid #e6eee4; margin-top: 9px; }
+.manual-back { margin-bottom: 20px; padding: 0; color: #819289; }
+.manual-form { display: grid; grid-template-columns: 1fr 1fr; column-gap: 10px; }
+.manual-form label:nth-of-type(1), .manual-form label:nth-of-type(2), .manual-form label:nth-of-type(7), .manual-form label:nth-of-type(8) { grid-column: 1 / -1; }
+.manual-form .login-error, .manual-form .login-button { grid-column: 1 / -1; }
+@media (max-width: 820px) {
+  .manual-form { grid-template-columns: 1fr; }
+  .manual-form label, .manual-form label:nth-of-type(1), .manual-form label:nth-of-type(2), .manual-form label:nth-of-type(7), .manual-form label:nth-of-type(8) { grid-column: auto; }
+  .manual-form .login-error, .manual-form .login-button { grid-column: auto; }
+}
