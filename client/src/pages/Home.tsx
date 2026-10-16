@@ -32,7 +32,6 @@ import {
   Bot,
   MapPin,
   Sparkles,
-  Map as MapIcon,
   Sun,
   ShieldAlert,
   Edit3,
@@ -44,8 +43,8 @@ import { apiUpdateProfile, type FarmerProfile } from "@/lib/auth";
 import { fetchWeather, type WeatherSnapshot } from "@/lib/weather";
 import { AiAssistant, type AssistantMode } from "@/components/AiAssistant";
 import { CropScanner } from "@/components/CropScanner";
+import { SeedScanner } from "@/components/SeedScanner";
 import { MandiTracker } from "@/components/MandiTracker";
-import { MapView } from "@/components/Map";
 
 type HomeProps = {
   locale: Locale;
@@ -593,28 +592,15 @@ function DetailPanel({
         </section>
       )}
 
-      {(id === "fertilizer" || id === "resources") && (
+      {id === "seed" && (
         <section className="mt-8">
-          <MandiTracker locale={locale} />
+          <SeedScanner locale={locale} defaultCrop={profile.crop} />
         </section>
       )}
 
-      {(id === "soil" || id === "irrigation") && (
-        <section className="mt-8 bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm">
-          <div className="mb-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md">
-              Geoapify & OpenStreetMap Boundary
-            </span>
-            <h3 className="text-base font-bold text-slate-800 mt-1">Interactive Farm Plot Locator</h3>
-            <p className="text-xs text-slate-500">
-              Pinpoint your crop plot or search village by name to sync localized weather & soil.
-            </p>
-          </div>
-          <MapView
-            initialCenter={{ lat: 20.087, lng: 73.95 }}
-            markerTitle={`${profile.name}'s Field`}
-            markerDescription={`${profile.village}, ${profile.district} · ${profile.crop} (${profile.farmSize})`}
-          />
+      {(id === "fertilizer" || id === "resources") && (
+        <section className="mt-8">
+          <MandiTracker locale={locale} />
         </section>
       )}
     </main>
@@ -633,8 +619,9 @@ export default function Home({ locale, setLocale, profile, onLogout, onGoAdmin }
   const [selectedModule, setSelectedModule] = useState<ModuleId | null>(null);
   const [voiceOpen, setVoiceOpen] = useState(false);
   const [aiChatOpen, setAiChatOpen] = useState(false);
-  const [assistantMode, setAssistantMode] = useState<AssistantMode>("soil");
-  const [showFarmMap, setShowFarmMap] = useState(false);
+  const [assistantMode, setAssistantMode] = useState<AssistantMode>("general");
+  const [homeAiPrompt, setHomeAiPrompt] = useState("");
+  const [initialAiQuery, setInitialAiQuery] = useState("");
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [assisted, setAssisted] = useState(false);
   const [online, setOnline] = useState(true);
@@ -881,7 +868,7 @@ export default function Home({ locale, setLocale, profile, onLogout, onGoAdmin }
             >
               <Bot size={15} />
               <span>
-                {locale === "hi" ? "AI सलाहकार" : locale === "mr" ? "AI सल्लागार" : "8-Mode AI Advisor"}
+                {locale === "hi" ? "AI सलाहकार" : locale === "mr" ? "AI सल्लागार" : "AI Advisor"}
               </span>
             </button>
 
@@ -937,45 +924,93 @@ export default function Home({ locale, setLocale, profile, onLogout, onGoAdmin }
               </div>
             </section>
 
-            {/* Quick 8-Mode Assistant Launcher Strip */}
-            <section className="bg-white p-3 sm:p-4 rounded-2xl border border-emerald-100 shadow-sm">
-              <div className="flex items-center justify-between mb-2.5">
+            {/* Unified AI Advisor Single Text Section & Photo Capture Bar */}
+            <section className="bg-white p-4 sm:p-5 rounded-2xl border border-emerald-200/90 shadow-sm">
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
                 <div className="flex items-center gap-2">
-                  <span className="p-1 bg-emerald-100 text-emerald-800 rounded-lg">
-                    <Sparkles size={16} />
+                  <span className="p-1.5 bg-emerald-100 text-emerald-800 rounded-xl">
+                    <Sparkles size={18} />
                   </span>
-                  <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                    8-Mode Agricultural AI Guidance
-                  </span>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-800">
+                      {locale === "hi"
+                        ? "एग्रीसाथी AI सलाहकार"
+                        : locale === "mr"
+                        ? "अॅग्रीसाथी AI सल्लागार"
+                        : "AgriSathi AI Advisor"}
+                    </h3>
+                    <p className="text-[11px] text-slate-500">
+                      {locale === "hi"
+                        ? "एक ही जगह कोई भी सवाल पूछें — सिस्टम स्वचालित रूप से संबंधित विशेषज्ञ मॉडल से सलाह देगा"
+                        : locale === "mr"
+                        ? "इथे कोणताही प्रश्न विचारा — प्रणाली आपोआप योग्य कृषी मॉडेलकडून मार्गदर्शन मिळवून देईल"
+                        : "Type any farming question in one single section — automatically routed to the required agro API"}
+                    </p>
+                  </div>
                 </div>
-                <span className="text-[11px] text-slate-500">Tap to consult specialized expert</span>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      setSelectedModule("pest");
+                      setActiveNav("pest");
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    className="flex items-center gap-1.5 text-xs bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 px-3 py-1.5 rounded-xl font-medium transition"
+                  >
+                    <ScanLine size={14} className="text-amber-700" />
+                    <span>🐛 {locale === "hi" ? "कीट फोटो जांच" : locale === "mr" ? "कीड फोटो तपासणी" : "Pest Photo Scan"}</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedModule("seed");
+                      setActiveNav("seed");
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    className="flex items-center gap-1.5 text-xs bg-green-50 hover:bg-green-100 text-green-900 border border-green-200 px-3 py-1.5 rounded-xl font-medium transition"
+                  >
+                    <Sprout size={14} className="text-green-700" />
+                    <span>🌱 {locale === "hi" ? "बीज फोटो जांच" : locale === "mr" ? "बियाणे फोटो तपासणी" : "Seed Quality Scan"}</span>
+                  </button>
+                </div>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
-                {[
-                  { id: "soil", label: "Soil Health", icon: Leaf, color: "text-emerald-700" },
-                  { id: "weather", label: "Weather Alert", icon: CloudSun, color: "text-sky-700" },
-                  { id: "pest", label: "Pest Detect", icon: ScanLine, color: "text-amber-700" },
-                  { id: "seed", label: "Seed Quality", icon: Sprout, color: "text-green-700" },
-                  { id: "fertilizer", label: "Fertilizer", icon: Sprout, color: "text-teal-700" },
-                  { id: "resources", label: "Planner", icon: Tractor, color: "text-stone-700" },
-                  { id: "practice", label: "Best Practice", icon: BookOpen, color: "text-indigo-700" },
-                  { id: "irrigation", label: "Irrigation", icon: Droplets, color: "text-blue-700" },
-                ].map((item) => {
-                  const ItemIcon = item.icon;
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => openAiWithMode(item.id as AssistantMode)}
-                      className="flex flex-col items-center justify-center p-2.5 bg-slate-50 hover:bg-emerald-50/80 border border-slate-200/80 hover:border-emerald-300 rounded-xl transition group text-center"
-                    >
-                      <ItemIcon size={18} className={`${item.color} mb-1 group-hover:scale-110 transition`} />
-                      <span className="text-[11px] font-semibold text-slate-700 group-hover:text-emerald-900 leading-tight">
-                        {item.label}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+
+              {/* Single Unified Text Container */}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (homeAiPrompt.trim()) {
+                    setInitialAiQuery(homeAiPrompt.trim());
+                    setAiChatOpen(true);
+                    setHomeAiPrompt("");
+                  } else {
+                    setInitialAiQuery("");
+                    setAiChatOpen(true);
+                  }
+                }}
+                className="flex flex-col sm:flex-row gap-2 mt-2"
+              >
+                <input
+                  type="text"
+                  value={homeAiPrompt}
+                  onChange={(e) => setHomeAiPrompt(e.target.value)}
+                  placeholder={
+                    locale === "hi"
+                      ? "अपनी फसल, मिट्टी, कीट, बीज, खाद या मौसम के बारे में कुछ भी पूछें..."
+                      : locale === "mr"
+                      ? "पीक, माती, कीड, बियाणे, खते किंवा हवामानाविषयी काहीही विचारा..."
+                      : "Ask any question about pests, seeds, soil, weather, fertilizer, or irrigation..."
+                  }
+                  className="flex-1 bg-slate-50 border border-slate-300 focus:border-emerald-600 rounded-xl px-4 py-2.5 text-sm outline-none transition"
+                />
+                <button
+                  type="submit"
+                  className="bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs px-5 py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-sm transition shrink-0"
+                >
+                  <Bot size={16} />
+                  <span>{locale === "hi" ? "सलाह लें" : locale === "mr" ? "सल्ला घ्या" : "Consult AI Advisor"}</span>
+                </button>
+              </form>
             </section>
 
             {/* Hero Grid: Next Task + OpenWeather + NASA POWER Agroclimatology */}
@@ -1016,14 +1051,6 @@ export default function Home({ locale, setLocale, profile, onLogout, onGoAdmin }
                       title="Edit Farm Details"
                     >
                       <Edit3 size={15} />
-                    </button>
-                    <button
-                      className="location-button"
-                      onClick={() => setShowFarmMap(!showFarmMap)}
-                      aria-label="Toggle Interactive Farm Map"
-                      title="Toggle Interactive Farm Map"
-                    >
-                      <MapIcon size={17} />
                     </button>
                     <button
                       className="location-button"
@@ -1102,33 +1129,6 @@ export default function Home({ locale, setLocale, profile, onLogout, onGoAdmin }
                 Weather Advisory →
               </button>
             </section>
-
-            {/* Interactive Farm Boundary Map */}
-            {showFarmMap && (
-              <section className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm animate-in fade-in">
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md">
-                      Geoapify & OpenStreetMap
-                    </span>
-                    <h3 className="text-base font-bold text-slate-800 mt-1">
-                      Farm Boundary & Field Coordinate Mapping
-                    </h3>
-                  </div>
-                  <button
-                    onClick={() => setShowFarmMap(false)}
-                    className="text-slate-400 hover:text-slate-700 text-xs px-2.5 py-1.5 bg-slate-100 rounded-lg"
-                  >
-                    Close Map
-                  </button>
-                </div>
-                <MapView
-                  initialCenter={{ lat: 20.087, lng: 73.95 }}
-                  markerTitle={`${profile.name}'s Farm`}
-                  markerDescription={`${profile.village}, ${profile.district} (${profile.crop})`}
-                />
-              </section>
-            )}
 
             {/* Status Strip */}
             <section className="status-strip">
@@ -1220,13 +1220,17 @@ export default function Home({ locale, setLocale, profile, onLogout, onGoAdmin }
       {/* Voice Assistant Modal */}
       {voiceOpen && <VoiceGuide locale={locale} voice={voice} onClose={() => setVoiceOpen(false)} />}
 
-      {/* 8-Mode AI Assistant Modal */}
+      {/* AI Advisor Modal */}
       <AiAssistant
         locale={locale}
         profile={profile}
         isOpen={aiChatOpen}
-        onClose={() => setAiChatOpen(false)}
+        onClose={() => {
+          setAiChatOpen(false);
+          setInitialAiQuery("");
+        }}
         initialMode={assistantMode}
+        initialPrompt={initialAiQuery}
       />
 
       {/* Edit Profile & Farm Modal */}

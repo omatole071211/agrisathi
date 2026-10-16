@@ -10,9 +10,10 @@ export type AdvisoryCategory =
   | "general";
 
 export interface AdvisoryRequest {
-  category: AdvisoryCategory;
+  category?: AdvisoryCategory;
   message: string;
   language?: "en" | "hi" | "mr";
+  image?: string;
   farmerContext?: {
     name?: string;
     crop?: string;
@@ -21,6 +22,76 @@ export interface AdvisoryRequest {
     district?: string;
     state?: string;
   };
+}
+
+export function detectAdvisoryCategory(message: string): AdvisoryCategory {
+  const text = message.toLowerCase();
+
+  if (
+    /(pest|disease|insect|thrips|caterpillar|blight|fungus|curl|yellow|spot|spray|rot|damage|larva|worm|infest|aphid|mite|borer|कीट|कीड़ा|रोग|थ्रिप्स|फफूंद|सड़न|अळी|कीड|रोगराई|मावा|तुडतुडे)/i.test(
+      text
+    )
+  ) {
+    return "pest";
+  }
+
+  if (
+    /(seed|germination|variety|viability|sowing|seedling|sprout|hybrid|certified seed|treatment|बीज|अंकुरण|किस्म|बीजोपचार|बियाणे|उगवण|वाण|बीजप्रक्रिया)/i.test(
+      text
+    )
+  ) {
+    return "seed";
+  }
+
+  if (
+    /(fertilizer|urea|dap|mop|npk|potash|nitrogen|phosphorus|compost|fym|manure|dosage|nutrient|खाद|उर्वरक|यूरिया|डीएपी|पोटाश|खत|शेणखत|पोषक|खते)/i.test(
+      text
+    )
+  ) {
+    return "fertilizer";
+  }
+
+  if (
+    /(water|irrigation|drip|sprinkler|moisture|watering|pump|flood|drainage|सिंचाई|पानी|ड्रिप|टपक|सिंचन|पाणी|ठिबक|मोटार)/i.test(
+      text
+    )
+  ) {
+    return "irrigation";
+  }
+
+  if (
+    /(weather|rain|temperature|forecast|monsoon|humidity|wind|frost|heat|storm|cloud|sunny|मौसम|बारिश|वर्षा|तापमान|हवामान|पाऊस|थंडी|ऊन|वादळ)/i.test(
+      text
+    )
+  ) {
+    return "weather";
+  }
+
+  if (
+    /(soil|ph|saline|alkaline|black soil|red soil|sandy|clay|organic carbon|fertility|मिट्टी|भू|जमीन|माती|सामू|गाळ|सुपीकता)/i.test(
+      text
+    )
+  ) {
+    return "soil";
+  }
+
+  if (
+    /(cost|budget|price|mandi|market|expense|labor|labour|profit|worker|tractor|equipment|finance|खर्च|बजट|मंडी|भाव|बाजारभाव|मजूर|हिशोब)/i.test(
+      text
+    )
+  ) {
+    return "resources";
+  }
+
+  if (
+    /(practice|rotation|plough|plow|tillage|harvest|transplant|weeding|guide|step|crop guide|पद्धति|जुताई|रोपाई|कटाई|तण|मशागत|लागवड|काढणी)/i.test(
+      text
+    )
+  ) {
+    return "practice";
+  }
+
+  return "general";
 }
 
 export interface AdvisoryResponse {
@@ -53,7 +124,20 @@ export const SYSTEM_PROMPTS: Record<AdvisoryCategory, string> = {
 
 export async function generateAdvisory(req: AdvisoryRequest): Promise<AdvisoryResponse> {
   const language = req.language || "en";
-  const category = req.category || "general";
+  let category: AdvisoryCategory = req.category || "general";
+
+  // Auto-route query to its required domain if category was general or omitted
+  if (!req.category || req.category === "general") {
+    if (req.image) {
+      category = /(seed|grain|kernel|बीज|बियाणे)/i.test(req.message) ? "seed" : "pest";
+    } else {
+      const autoDetected = detectAdvisoryCategory(req.message);
+      if (autoDetected !== "general") {
+        category = autoDetected;
+      }
+    }
+  }
+
   const baseSystemPrompt = SYSTEM_PROMPTS[category] || SYSTEM_PROMPTS.general;
 
   const farmerContext = req.farmerContext

@@ -418,6 +418,56 @@
       "language": "en",
       "provider": "AgriSathi Verified Agro-Knowledge Engine",
       "created_at": "2026-10-11T16:14:21.821Z"
+    },
+    {
+      "id": 34,
+      "user_id": 1,
+      "category": "resources",
+      "query": "what is the price of cotten",
+      "response": "### 📋 Agricultural Resource & Budget Planner\n1. **Input Planning**: Procure certified seeds and bio-fertilizers 2 weeks prior to planting season.\n2. **Labor & Machinery**: Pre-book weeding and harvesting labor 3-4 days ahead to avoid peak-season wage surges.\n3. **Efficiency**: Adopting drip irrigation and fertigation cuts fertilizer losses by up to 30% and electricity runtime by 40%.",
+      "language": "en",
+      "provider": "AgriSathi Verified Agro-Knowledge Engine",
+      "created_at": "2026-10-13T18:18:28.726Z"
+    },
+    {
+      "id": 35,
+      "user_id": 1,
+      "category": "pest",
+      "query": "Identify leaf spots and curled tips on my crop",
+      "response": "### 🐛 Pest Identification & Integrated Pest Management (IPM)\n1. **Detection**: Silvery streaks and curling leaves indicate thrips or sucking pests.\n2. **Biological & Cultural Controls**:\n   - Install 15-20 blue and yellow sticky traps per acre.\n   - Spray 5% Neem Seed Kernel Extract (NSKE) or Neem Oil (10,000 ppm @ 2-3 ml/L).\n3. **Chemical Threshold**: If infestation crosses the Economic Threshold Level (ETL), apply recommended insecticides strictly according to KVK guidance.",
+      "language": "en",
+      "provider": "AgriSathi Verified Agro-Knowledge Engine",
+      "created_at": "2026-10-13T18:18:52.903Z"
+    },
+    {
+      "id": 36,
+      "user_id": 1,
+      "category": "seed",
+      "query": "How to test seed germination rate at home?",
+      "response": "### 🌱 Seed Quality & Germination Testing\n1. **Home Germination Test**: Place 100 sample seeds on a moist cotton cloth for 5-7 days. Viable batches show >80% germination.\n2. **Seed Treatment**: Treat seeds with Trichoderma viride (5g/kg) or certified fungicides to prevent damping-off and seed-borne pathogens.\n3. **Storage Guidelines**: Store certified seed stock in cool, dry, rodent-proof bins with moisture below 8%.",
+      "language": "en",
+      "provider": "AgriSathi Verified Agro-Knowledge Engine",
+      "created_at": "2026-10-13T18:19:17.161Z"
+    },
+    {
+      "id": 37,
+      "user_id": 1,
+      "category": "pest",
+      "query": "Is today's weather safe for pesticide spraying?",
+      "response": "### 🐛 Pest Identification & Integrated Pest Management (IPM)\n1. **Detection**: Silvery streaks and curling leaves indicate thrips or sucking pests.\n2. **Biological & Cultural Controls**:\n   - Install 15-20 blue and yellow sticky traps per acre.\n   - Spray 5% Neem Seed Kernel Extract (NSKE) or Neem Oil (10,000 ppm @ 2-3 ml/L).\n3. **Chemical Threshold**: If infestation crosses the Economic Threshold Level (ETL), apply recommended insecticides strictly according to KVK guidance.",
+      "language": "en",
+      "provider": "AgriSathi Verified Agro-Knowledge Engine",
+      "created_at": "2026-10-13T18:19:34.623Z"
+    },
+    {
+      "id": 38,
+      "user_id": 1,
+      "category": "soil",
+      "query": "How to improve organic carbon in black soil?",
+      "response": "### 🌾 Soil Health & Fertility Advisory (Onion)\n1. **Nutrient Balance**: Maintain balanced N:P:K ratio. Apply full phosphorus and potassium as basal dose, splitting nitrogen into 2-3 top dressings.\n2. **Soil pH & Structure**: Optimal pH range for Onion is 6.5 - 7.5. Apply agricultural gypsum if dealing with sodic or alkaline soils.\n3. **Organic Carbon**: Incorporate 4-5 tonnes of well-decomposed Farm Yard Manure (FYM) or vermicompost per acre before planting.\n4. **Soil Testing**: Always compare visual symptoms against certified Soil Health Card (SHC) laboratory measurements.",
+      "language": "en",
+      "provider": "AgriSathi Verified Agro-Knowledge Engine",
+      "created_at": "2026-10-13T18:20:04.873Z"
     }
   ],
   "password_resets": [
